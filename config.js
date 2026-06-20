@@ -109,8 +109,25 @@ async function main() {
   }
 
   console.log('\x1b[35m--- GitHub & Git Settings ---\x1b[0m');
+
+  const repoDefault = config.github?.repo || '';
+  const repoInput = await question(`Enter GitHub repo to clone if workspace is empty (e.g. owner/repo) [${repoDefault}]: `);
+  const githubRepo = repoInput === '' ? repoDefault : repoInput;
+
+  let patUrl = 'https://github.com/settings/personal-access-tokens/new?name=Claude+Code+Remote+Token&description=Token+for+Claude+Code+Remote+Sandbox+with+contents+and+PR+access&metadata=read&contents=write&pull_requests=write&expires_in=none';
+  if (githubRepo && githubRepo.includes('/')) {
+    const parts = githubRepo.split('/');
+    const owner = parts[0];
+    const repo = parts.slice(1).join('/');
+    patUrl = `https://github.com/settings/personal-access-tokens/new?name=Claude+Code+-+${encodeURIComponent(repo)}&description=Token+for+Claude+Code+Remote+agent+on+${encodeURIComponent(githubRepo)}&target_name=${encodeURIComponent(owner)}&metadata=read&contents=write&pull_requests=write&expires_in=none`;
+  }
+
+  console.log('\n\x1b[36m[Tip] You can quickly generate a Fine-Grained GitHub PAT with the required permissions by opening this link:');
+  console.log(`\x1b[34m${patUrl}\x1b[0m`);
+  console.log('It is highly recommended to select "Only select repositories" and choose only the target repository for security.\n\x1b[0m');
+
   const tokenDefault = config.github?.token || '';
-  const tokenInput = await questionSecret(`Enter GitHub Personal Access Token (classic with repo scope) [${tokenDefault ? 'HIDDEN' : 'none'}]: `);
+  const tokenInput = await questionSecret(`Enter GitHub Personal Access Token [${tokenDefault ? 'HIDDEN' : 'none'}]: `);
   const token = tokenInput === '' ? tokenDefault : tokenInput;
 
   let githubIdentity = null;
@@ -123,10 +140,6 @@ async function main() {
       console.log(' \x1b[33m[Warning] Could not retrieve GitHub user. Token might be invalid or rate-limited.\x1b[0m');
     }
   }
-
-  const repoDefault = config.github?.repo || '';
-  const repoInput = await question(`Enter GitHub repo to clone if workspace is empty (e.g. owner/repo) [${repoDefault}]: `);
-  const githubRepo = repoInput === '' ? repoDefault : repoInput;
 
   const defaultGitName = githubIdentity?.name || config.git?.name || 'Claude Remote Agent';
   const gitNameInput = await question(`Enter Git User Name for container commits [${defaultGitName}]: `);

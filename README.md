@@ -20,12 +20,17 @@ This project provides a fully configurable Docker setup to run [Claude Code](htt
 
 ## Prerequisites
 
-Ensure the following tools are installed on your VPS host machine:
+Ensure the following tools are installed and configured on your VPS host machine:
 
-- **Docker**
-- **Docker Compose**
+- **Docker** and **Docker Compose**
 - **Git**
-- A **GitHub Personal Access Token (classic)** with `repo` scope (generate one under GitHub -> Settings -> Developer Settings -> Personal Access Tokens).
+- **Claude Code CLI (`@anthropic-ai/claude-code`)**: Before running the sandbox, you must install the Claude Code client on your VPS host and authenticate (by running `claude` and completing the login process) under the same user account that will execute the container. The Docker setup mounts and reads the session configuration (including `~/.claude.json`) directly from this user's home directory.
+- A **GitHub Personal Access Token (PAT)**:
+  - **Quick Creation:** You can use this [pre-filled Fine-Grained PAT template link](https://github.com/settings/personal-access-tokens/new?name=Claude+Code+Remote+Token&description=Token+for+Claude+Code+Remote+Sandbox+with+contents+and+PR+access&metadata=read&contents=write&pull_requests=write&expires_in=none) to auto-populate the required permissions.
+  - **Security Best Practice:** In the token creation form, it is highly recommended to restrict the **Repository access** option to **"Only select repositories"** and select only the repository you want the agent to work on, following the principle of least privilege.
+  - **Repository permissions:** Read & Write access to code (repository/contents).
+  - **Metadata permissions:** Read access to metadata.
+  - **Pull Requests (Optional):** Read & Write access to pull requests if you want the agent to use the GitHub CLI (`gh`), which is pre-installed in the sandbox, to manage PRs (e.g. creating or reviewing PRs).
 
 ---
 
@@ -59,13 +64,15 @@ docker compose up -d --build
 
 ### 3. Check Logs and Authenticate
 
-The first time you spin up the container, you will need to authenticate Claude Code with your Anthropic account. View the container logs to find the authentication URL:
+If you followed the prerequisites and logged in to Claude on your VPS host (`claude` or `claude login`), your authentication state (`~/.claude.json`) is mounted automatically, and the agent will start authenticated.
+
+Otherwise, if you need to authenticate inside the container, view the container logs to find the authentication URL:
 
 ```bash
 docker compose logs -f
 ```
 
-Click the provided URL, sign in with your Anthropic account, copy the authentication token, and execute it into the container (if the remote control asks for it), or copy your existing host configuration (`~/.claude.json`) to the host path you configured, which is automatically mounted.
+Click the provided URL, sign in with your Anthropic account, copy the authentication token, and execute it into the container (if the remote control asks for it), or ensure your host configuration (`~/.claude.json`) is correctly populated under the same user running the docker commands.
 
 ---
 

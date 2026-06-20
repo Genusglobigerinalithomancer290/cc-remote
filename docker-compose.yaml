@@ -16,6 +16,7 @@ services:
       - HOME=/home/node
       - SESSION_NAME=${SESSION_NAME}
       - SESSION_UUID=${SESSION_UUID}
+      - PERMISSION_MODE=${PERMISSION_MODE:-auto}
     volumes:
       - ${PROJECT_PATH}:/workspace
       - ${CLAUDE_CONFIG_PATH}:/home/node/.claude

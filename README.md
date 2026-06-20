@@ -8,7 +8,8 @@ This project provides a fully configurable Docker setup to run [Claude Code](htt
 
 - **VPS-Ready:** Easily host your Claude Code agent on any Linux VPS.
 - **Secure GitHub Auth:** Uses a GitHub Personal Access Token to authenticate all git clone/push/pull commands without exposing SSH keys inside the container.
-- **Dockerized:** Runs in an isolated Node environment with essential tools (`git`, `curl`, `gh` CLI).
+- **Dockerized Sandbox:** Runs in an isolated Docker container with essential tools (`git`, `curl`, `gh` CLI).
+- **Auto Mode Integration:** Configured to run in Claude's Auto Mode (`--permission-mode auto`) by default, utilizing an AI safety classifier to auto-approve safe tasks and eliminate prompt fatigue.
 - **Context Compression (Optional):** Integrates [Headroom](https://github.com/chopratejas/headroom) to compress tool outputs, command logs, and file structures. This reduces token consumption by **60% to 95%** while retaining answer quality.
 - **User Identity Adapter:** Dynamically maps the running container user (UID/GID) to match your host system user. This prevents files created by the agent inside the shared `/workspace` from being owned by `root` on the host.
 - **Session & Connection Persistence:** Configures a persistent session name (defaults to the repository name) and a unique static UUID, allowing your Remote Control session connection to persist across container re-creations without re-pairing.
@@ -45,6 +46,7 @@ During setup, you will be prompted for:
 - Git user details (`GIT_USER_NAME` and `GIT_USER_EMAIL`).
 - Paths for the project directory, Claude configuration directory (`~/.claude`), and session credentials file (`~/.claude.json`).
 - A **Session Name** for Remote Control (defaults to your repository name, e.g. `world-cup-2026`). A unique, persistent **Session UUID** will be generated automatically.
+- A **Permission Mode** for Claude Code (defaults to `auto`).
 - Whether to enable **Headroom** context compression. If enabled, the project name for Headroom stats will default to your Session Name.
 
 ### 2. Run the Container
@@ -90,6 +92,40 @@ When Headroom context compression is enabled during the interactive `setup.sh` s
 If Headroom is disabled:
 1. The `headroom` service profile is not loaded, saving host memory and CPU resources.
 2. The `claude-agent` container communicates directly with the official Anthropic API endpoint (`https://api.anthropic.com`) as standard.
+
+---
+
+## Auto Mode & Container Sandboxing
+
+By default, the container runs Claude Code in **Auto Mode** (`--permission-mode auto`).
+
+### Why Auto Mode?
+Auto Mode replaces routine permission prompts with a background safety classifier. This classifier evaluates pending tool actions and automatically approves safe operations (like reading or editing files in the workspace and running standard git operations) while blocking actions that appear destructive, irreversible, or outside the scope of your request. This significantly reduces "approval fatigue" during remote control sessions.
+
+### Security & Isolation (The Sandbox)
+Because the Claude Code agent runs entirely inside an isolated Docker container, the container acts as a secure sandbox. Any filesystem changes, commands, or tool executions occur within this sandbox and cannot access or modify the host VPS system files or configurations directly. This sandboxed architecture makes running in Auto Mode highly secure and safe.
+
+### Customizing Auto Mode Rules
+You can customize the classifier's behavior (e.g. telling it which repositories, buckets, or domains are trusted to avoid false-positive blocks on routine tasks) by defining an `autoMode` settings block in your user configuration.
+
+Since the container automatically mounts your host's Claude credentials file (`CLAUDE_JSON_PATH` which defaults to `~/.claude.json`), you can customize the configuration directly in `~/.claude.json` on the host:
+
+```json
+{
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "autoMode": {
+    "environment": [
+      "$defaults",
+      "Source control: github.com/your-org and all repos under it",
+      "Trusted internal domains: *.internal.example.com"
+    ]
+  }
+}
+```
+
+You can change the permission mode to other values (e.g., `default`, `acceptEdits`, `plan`, `dontAsk`, or `bypassPermissions` if you want to bypass prompts entirely in your sandbox) by setting the `PERMISSION_MODE` environment variable in your `.env` or during the interactive `./setup.sh` configuration.
 
 ---
 

@@ -29,6 +29,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # USER node
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["claude", "--remote-control"]
+CMD ["claude", "--remote-control", "--permission-mode", "auto"]
 
 

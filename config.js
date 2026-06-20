@@ -160,6 +160,11 @@ async function main() {
   // Persist or generate a unique UUID for this session
   const sessionUuid = config.session?.uuid || crypto.randomUUID();
 
+  console.log('\n\x1b[35m--- Permissions Configuration ---\x1b[0m');
+  const defaultPermissionMode = config.permissions?.mode || 'auto';
+  const permissionModeInput = await question(`Enter permission mode (auto, default, acceptEdits, plan, dontAsk, bypassPermissions) [${defaultPermissionMode}]: `);
+  const permissionMode = permissionModeInput === '' ? defaultPermissionMode : permissionModeInput;
+
   console.log('\n\x1b[35m--- Headroom context compression ---\x1b[0m');
   const defaultUseHeadroom = config.headroom?.enabled !== undefined ? config.headroom.enabled : false;
   const useHeadroomInput = await question(`Enable Headroom context compression? (y/N) [${defaultUseHeadroom ? 'y' : 'n'}]: `);
@@ -209,6 +214,9 @@ async function main() {
       name: sessionName,
       uuid: sessionUuid
     },
+    permissions: {
+      mode: permissionMode
+    },
     headroom: {
       enabled: useHeadroom,
       configPath: useHeadroom ? headroomConfig : undefined,
@@ -237,6 +245,7 @@ async function main() {
     `CLAUDE_JSON_PATH="${claudeJson}"`,
     `SESSION_NAME="${sessionName}"`,
     `SESSION_UUID="${sessionUuid}"`,
+    `PERMISSION_MODE="${permissionMode}"`,
     `HEADROOM_CONFIG_PATH="${useHeadroom ? headroomConfig : resolvePath('~/.headroom')}"`,
     `HEADROOM_PROJECT_NAME="${useHeadroom ? headroomProject : ''}"`,
     `HEADROOM_HOST_PORT="${headroomPort}"`,

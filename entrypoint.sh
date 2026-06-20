@@ -75,7 +75,7 @@ else
     echo " [Info] Git repository already exists. Skipping clone."
 fi
 
-# Automatically mark /workspace as a trusted directory in Claude settings
+# Automatically mark /workspace as a trusted directory and set default permission mode in Claude settings
 node -e '
 const fs = require("fs");
 const path = "/home/node/.claude.json";
@@ -87,17 +87,21 @@ try {
   if (!config.projects) config.projects = {};
   if (!config.projects["/workspace"]) config.projects["/workspace"] = {};
   config.projects["/workspace"].hasTrustDialogAccepted = true;
+
+  if (!config.permissions) config.permissions = {};
+  config.permissions.defaultMode = process.env.PERMISSION_MODE || "auto";
+
   fs.writeFileSync(path, JSON.stringify(config, null, 2), "utf8");
-  console.log(" [Info] Automatically marked /workspace as trusted in Claude settings.");
+  console.log(" [Info] Automatically configured default permission mode and trusted /workspace in Claude settings.");
 } catch (e) {
-  console.error(" [Error] Could not auto-trust /workspace:", e.message);
+  console.error(" [Error] Could not configure Claude settings:", e.message);
 }
 '
 
 # Execute the default command (interceptor for session UUID & name persistence)
 if [ -n "$SESSION_UUID" ] && [ "$1" = "claude" ] && [ "$2" = "--remote-control" ]; then
-    echo " [Info] Starting Remote Control session: $SESSION_NAME (UUID: $SESSION_UUID)"
-    exec claude --session-id="$SESSION_UUID" --remote-control="$SESSION_NAME"
+    echo " [Info] Starting Remote Control session: $SESSION_NAME (UUID: $SESSION_UUID) in ${PERMISSION_MODE:-auto} mode"
+    exec claude --session-id="$SESSION_UUID" --remote-control="$SESSION_NAME" --permission-mode="${PERMISSION_MODE:-auto}"
 else
     exec "$@"
 fi

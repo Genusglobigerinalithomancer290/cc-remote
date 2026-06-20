@@ -24,6 +24,9 @@ if [ "$(id -u)" = "0" ]; then
     mkdir -p /home/node/.local/bin
     ln -sf /usr/local/bin/claude /home/node/.local/bin/claude
     chown -R node:node /home/node 2>/dev/null
+    if [ -d "/tmp-skills" ]; then
+        chown -R node:node /tmp-skills 2>/dev/null
+    fi
     
     # Re-execute this script as the node user with corrected HOME environment variable
     echo " [Info] Dropping privileges to node user..."
@@ -99,9 +102,14 @@ try {
 '
 
 # Execute the default command (interceptor for session UUID & name persistence)
-if [ -n "$SESSION_UUID" ] && [ "$1" = "claude" ] && [ "$2" = "--remote-control" ]; then
-    echo " [Info] Starting Remote Control session: $SESSION_NAME (UUID: $SESSION_UUID) in ${PERMISSION_MODE:-auto} mode"
-    exec claude --session-id="$SESSION_UUID" --remote-control="$SESSION_NAME" --permission-mode="${PERMISSION_MODE:-auto}"
+if [ "$1" = "claude" ] && [ "$2" = "--remote-control" ]; then
+    if [ -n "$SESSION_UUID" ]; then
+        echo " [Info] Starting Remote Control session: $SESSION_NAME (UUID: $SESSION_UUID) in ${PERMISSION_MODE:-auto} mode"
+        exec claude --session-id="$SESSION_UUID" --remote-control="$SESSION_NAME" --permission-mode="${PERMISSION_MODE:-auto}"
+    else
+        echo " [Info] Starting Remote Control session: $SESSION_NAME (Dynamic Session ID) in ${PERMISSION_MODE:-auto} mode"
+        exec claude --remote-control="$SESSION_NAME" --permission-mode="${PERMISSION_MODE:-auto}"
+    fi
 else
     exec "$@"
 fi

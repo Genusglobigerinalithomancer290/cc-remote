@@ -51,6 +51,10 @@ if [ $? -eq 0 ] && [ -f .env ]; then
     echo -e " [Info] Creating Headroom config directory: ${BLUE}$HEADROOM_CONFIG_PATH${NC}"
     mkdir -p "$HEADROOM_CONFIG_PATH"
   fi
+  if [ ! -d "tmp-skills" ]; then
+    echo -e " [Info] Creating skills temp directory: ${BLUE}tmp-skills${NC}"
+    mkdir -p "tmp-skills"
+  fi
   
   # Prompt to run container
   echo ""

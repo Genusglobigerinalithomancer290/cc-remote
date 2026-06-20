@@ -170,15 +170,36 @@ async function main() {
   const sessionNameInput = await question(`Enter display name for this Remote Control session [${defaultSessionName}]: `);
   const sessionName = sessionNameInput === '' ? defaultSessionName : sessionNameInput;
   
-  // Persist or generate a unique UUID for this session
-  const sessionUuid = config.session?.uuid || crypto.randomUUID();
+  // Persist or generate a unique UUID for this session, or use a dynamic one
+  const defaultPersist = (config.session?.uuid && config.session.uuid !== '') ? 'y' : 'n';
+  console.log('\n\x1b[36m[Tip] Reusing the same session ID avoids having to re-pair the remote connection on restarts, but can sometimes cause the session to lock up.\x1b[0m');
+  const persistInput = await question(`Persist the same session ID across restarts? (y/N) [${defaultPersist}]: `);
+  const persistSession = persistInput === '' ? (defaultPersist === 'y') : ['y', 'yes'].includes(persistInput.toLowerCase().trim());
+
+  let sessionUuid = '';
+  if (persistSession) {
+    const existingUuid = config.session?.uuid;
+    if (existingUuid && existingUuid !== '') {
+      const resetInput = await question(`Keep existing session UUID (${existingUuid})? (Y/n): `);
+      const keepUuid = resetInput === '' || ['y', 'yes'].includes(resetInput.toLowerCase().trim());
+      sessionUuid = keepUuid ? existingUuid : crypto.randomUUID();
+    } else {
+      sessionUuid = crypto.randomUUID();
+    }
+    console.log(` [Info] Using persistent session UUID: ${sessionUuid}`);
+  } else {
+    console.log(' [Info] Session UUID will be dynamic (generated on each run).');
+  }
 
   console.log('\n\x1b[35m--- Permissions Configuration ---\x1b[0m');
   const defaultPermissionMode = config.permissions?.mode || 'auto';
   const permissionModeInput = await question(`Enter permission mode (auto, default, acceptEdits, plan, dontAsk, bypassPermissions) [${defaultPermissionMode}]: `);
   const permissionMode = permissionModeInput === '' ? defaultPermissionMode : permissionModeInput;
 
-  console.log('\n\x1b[35m--- Headroom context compression ---\x1b[0m');
+  console.log('\n\x1b[35m--- Headroom context compression (Experimental) ---\x1b[0m');
+  console.log('\x1b[33m[Warning] Use Headroom with caution and under supervision.');
+  console.log('          An increase in cache write activity has been observed when activated.');
+  console.log('          It is disabled by default in the configuration.\x1b[0m');
   const defaultUseHeadroom = config.headroom?.enabled !== undefined ? config.headroom.enabled : false;
   const useHeadroomInput = await question(`Enable Headroom context compression? (y/N) [${defaultUseHeadroom ? 'y' : 'n'}]: `);
   let useHeadroom = defaultUseHeadroom;

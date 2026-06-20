@@ -10,9 +10,9 @@ This project provides a fully configurable Docker setup to run [Claude Code](htt
 - **Secure GitHub Auth:** Uses a GitHub Personal Access Token to authenticate all git clone/push/pull commands without exposing SSH keys inside the container.
 - **Dockerized Sandbox:** Runs in an isolated Docker container with essential tools (`git`, `curl`, `gh` CLI).
 - **Auto Mode Integration:** Configured to run in Claude's Auto Mode (`--permission-mode auto`) by default, utilizing an AI safety classifier to auto-approve safe tasks and eliminate prompt fatigue.
-- **Context Compression (Optional):** Integrates [Headroom](https://github.com/chopratejas/headroom) to compress tool outputs, command logs, and file structures. This reduces token consumption by **60% to 95%** while retaining answer quality.
+- **Context Compression (Experimental/Optional):** Integrates [Headroom](https://github.com/chopratejas/headroom) to compress tool outputs, command logs, and file structures. This reduces token consumption by **60% to 95%** while retaining answer quality. *Warning: Headroom is experimental, should be used under supervision, and can increase cache write operations.*
 - **User Identity Adapter:** Dynamically maps the running container user (UID/GID) to match your host system user. This prevents files created by the agent inside the shared `/workspace` from being owned by `root` on the host.
-- **Session & Connection Persistence:** Configures a persistent session name (defaults to the repository name) and a unique static UUID, allowing your Remote Control session connection to persist across container re-creations without re-pairing.
+- **Session & Connection Persistence:** Configures a persistent session name (defaults to the repository name) and an optional unique static UUID, allowing your Remote Control session connection to persist across container re-creations without re-pairing.
 - **Interactive Config-Backed Setup:** A clean configuration setup (`setup.sh` + `config.js`) verifies host paths, writes to a schema-validated `config.json`, and compiles variables to `.env` automatically.
 - **Auto-Restore Session:** Restores the Claude authentication state from the host machine backups (`.claude.json`) if it gets lost during container recreation.
 
@@ -95,9 +95,9 @@ During setup, you will be prompted for:
 - The default **GitHub Repository** to clone (if the target directory is empty).
 - Git user details (`GIT_USER_NAME` and `GIT_USER_EMAIL`).
 - Paths for the project directory, Claude configuration directory (`~/.claude`), and session credentials file (`~/.claude.json`).
-- A **Session Name** for Remote Control (defaults to your repository name, e.g. `world-cup-2026`). A unique, persistent **Session UUID** will be generated automatically.
+- A **Session Name** for Remote Control (defaults to your repository name, e.g. `world-cup-2026`). You can choose to configure a persistent **Session UUID** (to keep the same connection URL across restarts) or a dynamic one (generated on each run to avoid connection locks).
 - A **Permission Mode** for Claude Code (defaults to `auto`).
-- Whether to enable **Headroom** context compression. If enabled, the project name for Headroom stats will default to your Session Name.
+- Whether to enable **Headroom** context compression (experimental, disabled by default). If enabled, the project name for Headroom stats will default to your Session Name.
 
 ### 3. Run the Container
 
@@ -134,6 +134,9 @@ Click the provided URL, sign in with your Anthropic account, copy the authentica
 ---
 
 ## How Headroom Integration Works
+
+> [!WARNING]
+> **Experimental Feature:** Headroom integration is experimental and should be used under supervision. An increase in cache write operations has been observed when Headroom is enabled. It is disabled by default in the configuration.
 
 When Headroom context compression is enabled during the interactive `setup.sh` script:
 1. **Multi-Container Layout:** Docker Compose loads the `headroom` profile (`COMPOSE_PROFILES="headroom"`), spinning up the official `ghcr.io/chopratejas/headroom:latest` proxy container alongside the `claude-agent`.

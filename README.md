@@ -36,7 +36,52 @@ Ensure the following tools are installed and configured on your VPS host machine
 
 ## Getting Started
 
-### 1. Configure and Prepare
+### 1. Install or Download on VPS
+
+Choose one of the following methods to deploy the codebase to your VPS:
+
+#### Option A: Clone the Repository (Recommended)
+If you have Git installed on your VPS, clone the repository directly:
+```bash
+git clone https://github.com/sgomez/cc-remote.git
+cd cc-remote
+```
+
+#### Option B: Download as a ZIP Archive
+If you do not want to configure Git on your VPS, download and extract the ZIP archive:
+```bash
+curl -L -o cc-remote.zip https://github.com/sgomez/cc-remote/archive/refs/heads/main.zip
+unzip cc-remote.zip
+cd cc-remote-main
+```
+
+#### Updating / Overwriting an Existing Installation
+When a new version is released, you can overwrite the previous one while preserving your settings (`config.json` and `.env`, which are ignored by Git and not part of the source):
+
+* **If you cloned via Git:**
+  ```bash
+  git pull
+  docker compose down
+  docker compose up -d --build
+  ```
+
+* **If you downloaded via ZIP:**
+  ```bash
+  # Download the latest archive
+  curl -L -o cc-remote-new.zip https://github.com/sgomez/cc-remote/archive/refs/heads/main.zip
+  
+  # Extract and overwrite the files (unzip -o overwrites existing files without prompting)
+  unzip -o cc-remote-new.zip
+  rm cc-remote-new.zip
+  
+  # Rebuild and restart the container
+  docker compose down
+  docker compose up -d --build
+  ```
+
+---
+
+### 2. Configure and Prepare
 
 Run the interactive setup script:
 ```bash
@@ -54,7 +99,7 @@ During setup, you will be prompted for:
 - A **Permission Mode** for Claude Code (defaults to `auto`).
 - Whether to enable **Headroom** context compression. If enabled, the project name for Headroom stats will default to your Session Name.
 
-### 2. Run the Container
+### 3. Run the Container
 
 If you did not opt to launch the container automatically at the end of `setup.sh`, you can build and start it manually:
 
@@ -62,7 +107,7 @@ If you did not opt to launch the container automatically at the end of `setup.sh
 docker compose up -d --build
 ```
 
-### 3. Check Logs and Authenticate
+### 4. Check Logs and Authenticate
 
 If you followed the prerequisites and logged in to Claude on your VPS host (`claude` or `claude login`), your authentication state (`~/.claude.json`) is mounted automatically, and the agent will start authenticated.
 
@@ -99,6 +144,48 @@ When Headroom context compression is enabled during the interactive `setup.sh` s
 If Headroom is disabled:
 1. The `headroom` service profile is not loaded, saving host memory and CPU resources.
 2. The `claude-agent` container communicates directly with the official Anthropic API endpoint (`https://api.anthropic.com`) as standard.
+
+### Port Safety & Security
+
+By default, the Headroom container port mapping in `docker-compose.yaml` is bound strictly to **`127.0.0.1`** (localhost on your VPS host):
+```yaml
+ports:
+  - "127.0.0.1:${HEADROOM_HOST_PORT:-8787}:8787"
+```
+This ensures the compression proxy is **not exposed to the public internet** or external networks, maintaining a secure sandbox environment on your VPS.
+
+### Monitoring Metrics & Savings Data
+
+Headroom tracks metrics including token savings, compression ratios, latency overhead, and cost savings in USD. For a detailed guide on the available telemetry and metrics, consult the official [Headroom Metrics Documentation](https://headroom-docs.vercel.app/docs/metrics).
+
+You can monitor and view these metrics in two ways:
+
+#### Option 1: Directly on the VPS Host (CLI)
+You can use `curl` to query the proxy's endpoints directly from your VPS command line:
+
+* **Get instant JSON statistics** (lifetime token savings, USD saved, compression ratios):
+  ```bash
+  curl http://127.0.0.1:8787/stats
+  ```
+* **Get Prometheus-compatible metrics**:
+  ```bash
+  curl http://127.0.0.1:8787/metrics
+  ```
+* **Get durable savings history** (hourly/daily/weekly rollups):
+  ```bash
+  curl http://127.0.0.1:8787/stats-history
+  ```
+
+#### Option 2: From your local Web Browser (Secure SSH Tunnel)
+Since the port is bound to `127.0.0.1` and not exposed to the internet, you can access it securely from your local browser via an SSH port-forwarding tunnel:
+
+1. **Establish the tunnel** from your local machine:
+   ```bash
+   ssh -L 8787:127.0.0.1:8787 user@vps-ip-address
+   ```
+2. **Access the endpoints in your browser**:
+   - Live metrics summary: `http://localhost:8787/stats`
+   - Prometheus metrics raw data: `http://localhost:8787/metrics`
 
 ---
 

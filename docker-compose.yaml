@@ -28,7 +28,7 @@ services:
     profiles:
       - headroom
     ports:
-      - "${HEADROOM_HOST_PORT:-8787}:8787"
+      - "127.0.0.1:${HEADROOM_HOST_PORT:-8787}:8787"
     volumes:
       - ${HEADROOM_CONFIG_PATH}:/root/.headroom
 

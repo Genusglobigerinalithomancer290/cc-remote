@@ -1,0 +1,37 @@
+
+services:
+  claude-agent:
+    build: .
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_REPO=${GITHUB_REPO}
+      - GIT_USER_NAME=${GIT_USER_NAME}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL}
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - HOME=/home/node
+      - SESSION_NAME=${SESSION_NAME}
+      - SESSION_UUID=${SESSION_UUID}
+    volumes:
+      - ${PROJECT_PATH}:/workspace
+      - ${CLAUDE_CONFIG_PATH}:/home/node/.claude
+      - ${CLAUDE_JSON_PATH}:/home/node/.claude.json
+
+  headroom:
+    image: ghcr.io/chopratejas/headroom:latest
+    restart: unless-stopped
+    profiles:
+      - headroom
+    ports:
+      - "${HEADROOM_HOST_PORT:-8787}:8787"
+    volumes:
+      - ${HEADROOM_CONFIG_PATH}:/root/.headroom
+
+
+
+
+

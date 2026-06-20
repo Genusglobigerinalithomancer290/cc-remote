@@ -1,0 +1,16 @@
+# Environment configurations
+.env
+config.json
+
+# Host mount directories created by setup.sh
+workspace/
+.claude/
+.headroom/
+
+# Logs & temp files
+*.log
+.npm/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,23 @@
+# Git files
+.git
+.gitignore
+
+# Environment configurations
+.env
+.env.example
+
+# Local scripts & docs
+README.md
+setup.sh
+config.js
+config.json
+architecture-review*.html
+
+# Local host directories
+workspace/
+.claude/
+.headroom/
+
+# OS files & logs
+*.log
+.DS_Store

